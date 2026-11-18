@@ -92,8 +92,8 @@
     <div class="item" id="itemInfo"></div>
     <label id="qtyLabel">實際數量</label>
     <input id="qty" inputmode="decimal" type="number" min="0" step="any">
-    <label>備註（選填）</label>
-    <input id="qtyNote" placeholder="例如：放在二樓、外箱破損">
+    <label>位置／備註（建議填位置）</label>
+    <input id="qtyNote" placeholder="例如：A架上層、二樓、外箱破損">
     <div id="qtyErr" class="err"></div>
     <div style="height:12px"></div>
     <div class="row">
@@ -137,7 +137,7 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
   /* ===== 設定：Apps Script 部署網址（/exec） ===== */
-  var API_URL = 'https://script.google.com/macros/s/AKfycbw8CrDItc2WC77UUQS17QgGZFLP5nDMABcSl2kQxuLBQd5vgPVchSEd0fPGaJdvEhbrUw/exec';
+  var API_URL = '11v4R4i52sXPMCo7HUSdR7rUITh_rx5LJfVxJ1RBlk-I';
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -145,7 +145,7 @@
   var Q = new URLSearchParams(location.search);
   var COUNT_ID = Q.get('count') || '', START_ITEM = (Q.get('item') || '').toUpperCase();
   var STORE_KEY = 'fy_inv_emp';
-  var items = [], byCode = {}, me = null, cur = null, scanner = null, scanning = false, paused = false, busy = false;
+  var COUNT = {}, items = [], byCode = {}, me = null, cur = null, scanner = null, scanning = false, paused = false, busy = false;
 
   if (/\bLine\//i.test(navigator.userAgent)) show('lineWarn', true);
 
@@ -161,14 +161,15 @@
   }
 
   var UI = (function () {
-    function open(msg, cancel) {
+    function open(msg, cancel, yes, no) {
       return new Promise(function (res) {
         $('dlgMsg').textContent = String(msg); show('dlgNo', cancel); show('dlg', true);
+        $('dlgYes').textContent = yes || '確定'; $('dlgNo').textContent = no || '取消';
         $('dlgYes').onclick = function () { show('dlg', false); res(true); };
         $('dlgNo').onclick = function () { show('dlg', false); res(false); };
       });
     }
-    return { alert: function (m) { return open(m, false); }, confirm: function (m) { return open(m, true); } };
+    return { alert: function (m) { return open(m, false); }, confirm: function (m, yes, no) { return open(m, true, yes, no); } };
   })();
 
   function flash(t) { $('okMsg').textContent = t; show('okMsg', true); clearTimeout(flash.t); flash.t = setTimeout(function () { show('okMsg', false); }, 3500); }
@@ -200,6 +201,8 @@
       $('cSub').textContent = '盤點單 ' + d.count.id + '｜' + d.count.status;
       if (d.count.status !== '進行中') { $('pInfo').textContent = '這張盤點單已結束，無法再登記。如需補登請通知生管。'; show('pInfo', true); return; }
       items = d.items; items.forEach(function (i) { byCode[i.code] = i; });
+      COUNT = d.count;
+      if (COUNT.assignName) $('cSub').textContent += '｜盤點人：' + COUNT.assignName;
       me = load();
       if (me) verify(me.no, true); else show('pLogin', true);
     }).catch(function (e) { $('cName').textContent = '無法開啟盤點單'; $('cSub').textContent = e; });
@@ -211,6 +214,9 @@
     if (!no) { $('loginErr').textContent = '請輸入工號'; return; }
     $('btnLogin').disabled = true; $('loginErr').textContent = '';
     call('verifyStaff', no).then(function (s) {
+      if (COUNT.assignNo && COUNT.assignNo !== s.no) {
+        throw '這張盤點單指定由 ' + COUNT.assignName + '（' + COUNT.assignNo + '）盤點。\n請開啟你自己的盤點連結，或切換人員。';
+      }
       return (silent ? Promise.resolve(true) : UI.confirm(s.no + ' ' + s.name + '\n是你本人嗎？')).then(function (ok) {
         $('btnLogin').disabled = false;
         if (!ok) return;
@@ -294,6 +300,21 @@
       UI.alert('查無料號：' + code + '\n可能是舊料卡或非盤點料號，請改用「登記沒有料卡的物品」。').then(resumeScan);
       return;
     }
+    checkDup(it).then(function (go) {
+      if (!go) { resumeScan(); return; }
+      showQty(it);
+    });
+  }
+  function checkDup(it) {
+    return call('codeRecords', COUNT_ID, it.code).then(function (list) {
+      if (!list.length) return true;
+      var lines = list.map(function (r) {
+        return '・' + (r.empNo === me.no ? '你' : r.empName) + ' ' + String(r.time).slice(11, 16) + '　' + r.qty + ' ' + r.unit + (r.note ? '　' + r.note : '');
+      }).join('\n');
+      return UI.confirm('⚠️ ' + it.code + ' ' + it.name + '\n這張單已經登記過：\n' + lines + '\n\n這次是另一個位置的數量嗎？', '另一個位置，要加上', '已經盤過，取消');
+    }).catch(function () { return true; });
+  }
+  function showQty(it) {
     cur = it;
     $('itemInfo').innerHTML = '<span class="line">' + esc(it.line) + '</span>' + (it.disabled ? '<span class="tag">已停用</span>' : '') +
       '<div class="code">' + esc(it.code) + '</div><div class="name">' + esc(it.name) + '</div>' +
