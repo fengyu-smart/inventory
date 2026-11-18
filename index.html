@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>豐譽 盤點掃描</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; margin: 0; background: #f5f6f8; color: #222; font-size: 16px; }
+  header { background: #1f4e79; color: #fff; padding: 12px 16px; }
+  header .t { font-size: 17px; font-weight: 600; }
+  header .s { font-size: 13px; opacity: .85; margin-top: 2px; }
+  .who { background: #eaf1f8; padding: 8px 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .who a { color: #1f4e79; }
+  .box { background: #fff; margin: 12px; border-radius: 12px; padding: 16px; border: 1px solid #dde1e6; }
+  .hidden { display: none !important; }
+  button { font-size: 17px; padding: 13px; border-radius: 10px; border: 1px solid #1f4e79; background: #fff; color: #1f4e79; width: 100%; cursor: pointer; }
+  button.primary { background: #1f4e79; color: #fff; }
+  button.small { width: auto; font-size: 14px; padding: 6px 12px; }
+  button:disabled { opacity: .5; }
+  input { font-size: 17px; padding: 11px; border: 1px solid #c5cbd3; border-radius: 8px; width: 100%; }
+  label { display: block; font-size: 14px; color: #555; margin: 12px 0 4px; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  .msg { font-size: 14px; color: #555; margin-top: 8px; }
+  .err { color: #b3261e; font-size: 14px; margin-top: 8px; }
+  .ok { background: #e3f4e8; color: #1e6b35; border-radius: 8px; padding: 10px 12px; margin: 12px; font-size: 15px; }
+  .warn { background: #fff1d6; color: #8a5a00; border-radius: 8px; padding: 10px 12px; margin: 12px; font-size: 14px; }
+  #reader { width: 100%; border-radius: 10px; overflow: hidden; background: #000; }
+  #reader video { width: 100% !important; }
+  .scanhint { text-align: center; font-size: 14px; color: #555; margin-top: 6px; }
+  .sug { border: 1px solid #dde1e6; border-radius: 8px; margin-top: 6px; max-height: 260px; overflow: auto; }
+  .sug div { padding: 10px 12px; border-bottom: 1px solid #eef0f3; font-size: 15px; }
+  .sug div small { color: #777; display: block; }
+  .item .code { font-size: 22px; font-weight: 700; font-family: Arial, sans-serif; }
+  .item .name { font-size: 18px; font-weight: 600; margin-top: 2px; }
+  .item .spec { font-size: 14px; color: #555; margin-top: 2px; }
+  .item .line { display: inline-block; font-size: 12px; color: #1f4e79; border: 1px solid #1f4e79; border-radius: 10px; padding: 1px 8px; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; background: #fde2e2; color: #a12; margin-left: 6px; }
+  .rec { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #eef0f3; font-size: 14px; gap: 8px; }
+  .rec b { font-size: 15px; }
+  h3 { font-size: 16px; margin: 0 0 8px; }
+  .center { text-align: center; padding: 30px 16px; font-size: 17px; }
+  .clist a { display: block; background: #1f4e79; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 17px; text-align: center; }
+  .dlg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 999; }
+  .dlg-box { background: #fff; border-radius: 12px; padding: 18px; width: 92%; max-width: 420px; line-height: 1.5; }
+  #dlgMsg { white-space: pre-line; margin-bottom: 14px; }
+  .dlg-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .dlg-btns button { width: auto; min-width: 90px; }
+</style>
+</head>
+<body>
+<header><div class="t" id="cName">豐譽 盤點掃描</div><div class="s" id="cSub">載入中…</div></header>
+<div class="warn hidden" id="lineWarn">你正在 LINE 裡開啟，可能無法使用鏡頭。請按右上角選單 →「以預設瀏覽器開啟」，或複製連結到 Safari／Chrome。</div>
+<div class="who hidden" id="whoBar"><span id="whoTxt"></span><a href="#" id="switchWho">切換人員</a></div>
+<div id="okMsg" class="ok hidden"></div>
+
+<!-- 選盤點單 -->
+<div class="box hidden" id="pPick">
+  <h3>請選擇盤點單</h3>
+  <div class="clist" id="clist"></div>
+</div>
+
+<!-- 身分登記 -->
+<div class="box hidden" id="pLogin">
+  <h3>請輸入你的工號</h3>
+  <input id="empNo" inputmode="numeric" placeholder="例如 20250705">
+  <div id="loginErr" class="err"></div>
+  <div style="height:12px"></div>
+  <button class="primary" id="btnLogin">確認</button>
+  <p class="msg">這支手機會記住你的工號，下次不用再輸入。</p>
+</div>
+
+<!-- 主畫面 -->
+<div id="pMain" class="hidden">
+  <div class="box">
+    <button class="primary" id="btnScan">開始掃描</button>
+    <div id="scanArea" class="hidden">
+      <div id="reader"></div>
+      <div class="scanhint" id="scanHint">把料卡 QR 對準框內，讀到會自動帶出料號</div>
+      <div style="height:8px"></div>
+      <button class="small" id="btnStopScan">關閉鏡頭</button>
+    </div>
+    <div id="camErr" class="err hidden"></div>
+    <label>或輸入料號／品名搜尋</label>
+    <input id="search" placeholder="例如 MR-CM-00-001 或 端子盤" autocomplete="off">
+    <div class="sug hidden" id="sug"></div>
+  </div>
+
+  <div class="box hidden" id="pQty">
+    <div class="item" id="itemInfo"></div>
+    <label id="qtyLabel">實際數量</label>
+    <input id="qty" inputmode="decimal" type="number" min="0" step="any">
+    <label>備註（選填）</label>
+    <input id="qtyNote" placeholder="例如：放在二樓、外箱破損">
+    <div id="qtyErr" class="err"></div>
+    <div style="height:12px"></div>
+    <div class="row">
+      <button id="btnCancelQty">取消</button>
+      <button class="primary" id="btnSubmit">送出</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <button id="btnUnlisted">登記沒有料卡／查不到料號的物品</button>
+    <div id="pUnlisted" class="hidden">
+      <label>物品名稱 *</label>
+      <input id="uName" placeholder="寫下看得到的名稱、型號">
+      <div class="row">
+        <div><label>數量 *</label><input id="uQty" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div><label>單位</label><input id="uUnit" placeholder="個、台、條…"></div>
+      </div>
+      <label>照片（建議拍一張）</label>
+      <input type="file" accept="image/*" capture="environment" id="uPhoto" style="font-size:15px">
+      <label>備註</label>
+      <input id="uNote">
+      <div id="uErr" class="err"></div>
+      <div style="height:12px"></div>
+      <div class="row">
+        <button id="btnCancelU">取消</button>
+        <button class="primary" id="btnSubmitU">送出</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>我登記的紀錄</h3>
+    <div id="myRecs" class="msg">載入中…</div>
+  </div>
+</div>
+
+<div id="pInfo" class="center hidden"></div>
+
+<div id="dlg" class="dlg hidden"><div class="dlg-box"><div id="dlgMsg"></div><div class="dlg-btns"><button id="dlgNo">取消</button><button class="primary" id="dlgYes">確定</button></div></div></div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  /* ===== 設定：Apps Script 部署網址（/exec） ===== */
+  var API_URL = 'https://script.google.com/macros/s/AKfycbw8CrDItc2WC77UUQS17QgGZFLP5nDMABcSl2kQxuLBQd5vgPVchSEd0fPGaJdvEhbrUw/exec';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var show = function (id, on) { $(id).classList.toggle('hidden', !on); };
+  var Q = new URLSearchParams(location.search);
+  var COUNT_ID = Q.get('count') || '', START_ITEM = (Q.get('item') || '').toUpperCase();
+  var STORE_KEY = 'fy_inv_emp';
+  var items = [], byCode = {}, me = null, cur = null, scanner = null, scanning = false, paused = false, busy = false;
+
+  if (/\bLine\//i.test(navigator.userAgent)) show('lineWarn', true);
+
+  function store(v) { try { if (v) localStorage.setItem(STORE_KEY, JSON.stringify(v)); else localStorage.removeItem(STORE_KEY); } catch (e) {} }
+  function load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; } }
+
+  function call(action) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: action, args: args }) })
+      .then(function (r) { return r.json(); })
+      .catch(function () { throw '連線失敗，請確認網路後再試一次'; })
+      .then(function (j) { if (!j.ok) throw j.error; return j.data; });
+  }
+
+  var UI = (function () {
+    function open(msg, cancel) {
+      return new Promise(function (res) {
+        $('dlgMsg').textContent = String(msg); show('dlgNo', cancel); show('dlg', true);
+        $('dlgYes').onclick = function () { show('dlg', false); res(true); };
+        $('dlgNo').onclick = function () { show('dlg', false); res(false); };
+      });
+    }
+    return { alert: function (m) { return open(m, false); }, confirm: function (m) { return open(m, true); } };
+  })();
+
+  function flash(t) { $('okMsg').textContent = t; show('okMsg', true); clearTimeout(flash.t); flash.t = setTimeout(function () { show('okMsg', false); }, 3500); }
+
+  var audio = null;
+  function beep() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      var o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = 1800; g.gain.value = 0.15; o.connect(g); g.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + 0.12);
+    } catch (e) {}
+    if (navigator.vibrate) navigator.vibrate(80);
+  }
+
+  /* ---------- 啟動 ---------- */
+  if (!COUNT_ID) {
+    $('cSub').textContent = '請選擇要盤點的盤點單';
+    call('apiOpenCounts').then(function (list) {
+      if (!list.length) { $('pInfo').textContent = '目前沒有進行中的盤點單。'; show('pInfo', true); return; }
+      $('clist').innerHTML = list.map(function (c) {
+        return '<a href="?count=' + encodeURIComponent(c.id) + '">' + esc(c.name) + '<br><small>' + esc(c.id) + '</small></a>';
+      }).join('');
+      show('pPick', true);
+    }).catch(function (e) { $('pInfo').textContent = e; show('pInfo', true); });
+  } else {
+    call('countInit', COUNT_ID).then(function (d) {
+      $('cName').textContent = d.count.name;
+      $('cSub').textContent = '盤點單 ' + d.count.id + '｜' + d.count.status;
+      if (d.count.status !== '進行中') { $('pInfo').textContent = '這張盤點單已結束，無法再登記。如需補登請通知生管。'; show('pInfo', true); return; }
+      items = d.items; items.forEach(function (i) { byCode[i.code] = i; });
+      me = load();
+      if (me) verify(me.no, true); else show('pLogin', true);
+    }).catch(function (e) { $('cName').textContent = '無法開啟盤點單'; $('cSub').textContent = e; });
+  }
+
+  /* ---------- 身分 ---------- */
+  $('btnLogin').onclick = function () { verify($('empNo').value.trim(), false); };
+  function verify(no, silent) {
+    if (!no) { $('loginErr').textContent = '請輸入工號'; return; }
+    $('btnLogin').disabled = true; $('loginErr').textContent = '';
+    call('verifyStaff', no).then(function (s) {
+      return (silent ? Promise.resolve(true) : UI.confirm(s.no + ' ' + s.name + '\n是你本人嗎？')).then(function (ok) {
+        $('btnLogin').disabled = false;
+        if (!ok) return;
+        me = s; store(s);
+        $('whoTxt').textContent = '盤點人：' + s.name + '（' + s.no + '）';
+        show('whoBar', true); show('pLogin', false); show('pMain', true);
+        loadMine();
+        if (START_ITEM) pick(START_ITEM);
+      });
+    }).catch(function (e) {
+      store(null); me = null; show('pLogin', true); show('pMain', false); show('whoBar', false);
+      $('loginErr').textContent = e; $('btnLogin').disabled = false;
+    });
+  }
+  $('switchWho').onclick = function (e) { e.preventDefault(); store(null); me = null; stopScan(); show('pMain', false); show('whoBar', false); $('empNo').value = ''; show('pLogin', true); };
+
+  /* ---------- 連續掃描 ---------- */
+  function codeFromText(t) {
+    t = String(t || '').trim();
+    var m = t.match(/[?&]item=([^&#]+)/);
+    return (m ? decodeURIComponent(m[1]) : t).toUpperCase();
+  }
+  $('btnScan').onclick = startScan;
+  function startScan() {
+    if (typeof Html5Qrcode === 'undefined') { $('camErr').textContent = '掃描元件載入失敗，請重新整理頁面'; show('camErr', true); return; }
+    show('camErr', false); show('scanArea', true); show('btnScan', false);
+    beep.unlock = beep.unlock || (function () { try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {} return 1; })();
+    scanner = scanner || new Html5Qrcode('reader');
+    scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 }, onDecode, function () {})
+      .then(function () { scanning = true; paused = false; })
+      .catch(function (err) {
+        show('scanArea', false); show('btnScan', true);
+        $('camErr').textContent = '無法開啟鏡頭：請允許相機權限，或改用 Safari／Chrome 開啟。（' + err + '）';
+        show('camErr', true);
+      });
+  }
+  var lastCode = '', resumeAt = 0;
+  function onDecode(text) {
+    if (paused) return;
+    var code = codeFromText(text);
+    // 剛送出後 3 秒內，鏡頭還對著同一張料卡時不重複帶入
+    if (code === lastCode && Date.now() - resumeAt < 3000) return;
+    lastCode = code;
+    paused = true;
+    try { scanner.pause(true); } catch (e) {}
+    beep();
+    pick(code);
+  }
+  function resumeScan() {
+    if (scanning && paused) {
+      paused = false; resumeAt = Date.now();
+      try { scanner.resume(); } catch (e) {}
+      $('scanArea').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  function stopScan() {
+    if (scanner && scanning) { try { scanner.stop().catch(function () {}); } catch (e) {} }
+    scanning = false; paused = false; show('scanArea', false); show('btnScan', true);
+  }
+  $('btnStopScan').onclick = stopScan;
+
+  /* ---------- 搜尋 ---------- */
+  $('search').oninput = function () {
+    var k = this.value.trim().toUpperCase();
+    if (k.length < 2) { show('sug', false); return; }
+    var hit = items.filter(function (i) { return (i.code + ' ' + i.name + ' ' + i.spec).toUpperCase().indexOf(k) >= 0; }).slice(0, 15);
+    $('sug').innerHTML = hit.length ? hit.map(function (i) {
+      return '<div data-c="' + esc(i.code) + '"><b>' + esc(i.code) + '</b> ' + esc(i.name) + '<small>' + esc(i.spec) + '</small></div>';
+    }).join('') : '<div>查無符合的料號，可改用下方「登記沒有料卡的物品」</div>';
+    show('sug', true);
+    Array.prototype.forEach.call($('sug').querySelectorAll('div[data-c]'), function (d) {
+      d.onclick = function () { if (scanning && !paused) { paused = true; try { scanner.pause(true); } catch (e) {} } pick(d.getAttribute('data-c')); };
+    });
+  };
+
+  /* ---------- 輸入數量 ---------- */
+  function pick(code) {
+    var it = byCode[code];
+    $('search').value = ''; show('sug', false);
+    if (!it) {
+      UI.alert('查無料號：' + code + '\n可能是舊料卡或非盤點料號，請改用「登記沒有料卡的物品」。').then(resumeScan);
+      return;
+    }
+    cur = it;
+    $('itemInfo').innerHTML = '<span class="line">' + esc(it.line) + '</span>' + (it.disabled ? '<span class="tag">已停用</span>' : '') +
+      '<div class="code">' + esc(it.code) + '</div><div class="name">' + esc(it.name) + '</div>' +
+      (it.spec ? '<div class="spec">' + esc(it.spec) + '</div>' : '');
+    $('qtyLabel').textContent = '實際數量（' + it.unit + (it.decimal ? '，可填小數' : '，請填整數') + '）';
+    $('qty').value = ''; $('qtyNote').value = ''; $('qtyErr').textContent = '';
+    $('qty').step = it.decimal ? 'any' : '1';
+    show('pQty', true);
+    $('pQty').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(function () { $('qty').focus(); }, 250);
+  }
+  $('btnCancelQty').onclick = function () { cur = null; show('pQty', false); resumeScan(); };
+  $('btnSubmit').onclick = function () {
+    if (!cur || busy) return;
+    var v = $('qty').value.trim();
+    if (v === '') { $('qtyErr').textContent = '請輸入數量'; return; }
+    if (!cur.decimal && Math.floor(Number(v)) !== Number(v)) { $('qtyErr').textContent = '這個單位只能填整數'; return; }
+    busy = true; $('btnSubmit').disabled = true; $('btnSubmit').textContent = '送出中…';
+    call('submitCount', { countId: COUNT_ID, empNo: me.no, code: cur.code, qty: v, note: $('qtyNote').value })
+      .then(function (r) {
+        flash('已記錄 ' + r.code + ' ' + r.name + '：' + r.qty + ' ' + r.unit);
+        cur = null; show('pQty', false); loadMine();
+        if (scanning) resumeScan(); else window.scrollTo(0, 0);
+      })
+      .catch(function (e) { $('qtyErr').textContent = e; })
+      .then(function () { busy = false; $('btnSubmit').disabled = false; $('btnSubmit').textContent = '送出'; });
+  };
+
+  /* ---------- 無料號物品 ---------- */
+  $('btnUnlisted').onclick = function () { show('pUnlisted', true); show('btnUnlisted', false); };
+  $('btnCancelU').onclick = resetU;
+  function resetU() { ['uName', 'uQty', 'uUnit', 'uNote'].forEach(function (id) { $(id).value = ''; }); $('uPhoto').value = ''; $('uErr').textContent = ''; show('pUnlisted', false); show('btnUnlisted', true); }
+  function shrink(file) {
+    return new Promise(function (res) {
+      if (!file) return res('');
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var max = 1280, w = img.width, h = img.height, s = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = function () { res(''); };
+      img.src = url;
+    });
+  }
+  $('btnSubmitU').onclick = function () {
+    if (busy) return;
+    var name = $('uName').value.trim(), q = $('uQty').value.trim();
+    if (!name) { $('uErr').textContent = '請填寫物品名稱'; return; }
+    if (q === '') { $('uErr').textContent = '請輸入數量'; return; }
+    var f = $('uPhoto').files[0];
+    (f ? Promise.resolve(true) : UI.confirm('沒有拍照，確定要送出嗎？')).then(function (ok) { if (ok) sendU(name, q, f); });
+  };
+  function sendU(name, q, f) {
+    busy = true; $('btnSubmitU').disabled = true; $('btnSubmitU').textContent = '送出中…';
+    shrink(f).then(function (photo) {
+      return call('submitUnlisted', { countId: COUNT_ID, empNo: me.no, name: name, qty: q, unit: $('uUnit').value, note: $('uNote').value, photo: photo });
+    }).then(function (r) {
+      flash('已登記無料號物品：' + r.name + ' ' + r.qty + ' ' + r.unit); resetU(); loadMine(); window.scrollTo(0, 0);
+    }).catch(function (e) { $('uErr').textContent = e; })
+      .then(function () { busy = false; $('btnSubmitU').disabled = false; $('btnSubmitU').textContent = '送出'; });
+  }
+
+  /* ---------- 我的紀錄 ---------- */
+  function loadMine() {
+    call('myRecords', COUNT_ID, me.no).then(function (list) {
+      if (!list.length) { $('myRecs').textContent = '還沒有紀錄'; return; }
+      $('myRecs').innerHTML = list.map(function (r) {
+        var title = r.type === '無料號' ? '（無料號）' + esc(r.freeName) : esc(r.code) + ' ' + esc(r.name);
+        return '<div class="rec"><div><b>' + title + '</b><br>' + esc(r.qty) + ' ' + esc(r.unit) + '　' + esc(String(r.time).slice(11, 16)) +
+          (r.note ? '　' + esc(r.note) : '') + '</div><button class="small" data-r="' + esc(r.rid) + '">刪除</button></div>';
+      }).join('');
+      Array.prototype.forEach.call($('myRecs').querySelectorAll('button[data-r]'), function (b) {
+        b.onclick = function () {
+          UI.confirm('確定刪除這筆紀錄？（例如掃錯、重複登記）').then(function (ok) {
+            if (!ok) return;
+            b.disabled = true;
+            call('deleteMyRecord', COUNT_ID, b.getAttribute('data-r'), me.no).then(loadMine).catch(function (e) { UI.alert(e); b.disabled = false; });
+          });
+        };
+      });
+    }).catch(function (e) { $('myRecs').textContent = e; });
+  }
+</script>
+</body>
+</html>
