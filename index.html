@@ -4,27 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>豐譽 盤點掃描</title>
+<title>豐譽 盤點領料</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif; margin: 0; background: #f5f6f8; color: #222; font-size: 16px; }
   header { background: #1f4e79; color: #fff; padding: 12px 16px; }
   header .t { font-size: 17px; font-weight: 600; }
   header .s { font-size: 13px; opacity: .85; margin-top: 2px; }
-  .who { background: #eaf1f8; padding: 8px 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-  .who a { color: #1f4e79; }
+  .who { background: #eaf1f8; padding: 8px 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .who a { color: #1f4e79; white-space: nowrap; }
   .box { background: #fff; margin: 12px; border-radius: 12px; padding: 16px; border: 1px solid #dde1e6; }
   .hidden { display: none !important; }
   button { font-size: 17px; padding: 13px; border-radius: 10px; border: 1px solid #1f4e79; background: #fff; color: #1f4e79; width: 100%; cursor: pointer; }
   button.primary { background: #1f4e79; color: #fff; }
   button.small { width: auto; font-size: 14px; padding: 6px 12px; }
   button:disabled { opacity: .5; }
-  input { font-size: 17px; padding: 11px; border: 1px solid #c5cbd3; border-radius: 8px; width: 100%; }
+  input, textarea { font-size: 17px; padding: 11px; border: 1px solid #c5cbd3; border-radius: 8px; width: 100%; font-family: inherit; }
   label { display: block; font-size: 14px; color: #555; margin: 12px 0 4px; }
   .row { display: flex; gap: 10px; }
   .row > * { flex: 1; }
   .msg { font-size: 14px; color: #555; margin-top: 8px; }
-  .err { color: #b3261e; font-size: 14px; margin-top: 8px; }
+  .err { color: #b3261e; font-size: 14px; margin-top: 8px; white-space: pre-line; }
   .ok { background: #e3f4e8; color: #1e6b35; border-radius: 8px; padding: 10px 12px; margin: 12px; font-size: 15px; }
   .warn { background: #fff1d6; color: #8a5a00; border-radius: 8px; padding: 10px 12px; margin: 12px; font-size: 14px; }
   #reader { width: 100%; border-radius: 10px; overflow: hidden; background: #000; }
@@ -38,11 +38,29 @@
   .item .spec { font-size: 14px; color: #555; margin-top: 2px; }
   .item .line { display: inline-block; font-size: 12px; color: #1f4e79; border: 1px solid #1f4e79; border-radius: 10px; padding: 1px 8px; }
   .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; background: #fde2e2; color: #a12; margin-left: 6px; }
+  .tag.blue { background: #e3eef9; color: #1f4e79; }
+  .tag.green { background: #e3f4e8; color: #1e6b35; }
+  .tag.amber { background: #fff1d6; color: #8a5a00; }
   .rec { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #eef0f3; font-size: 14px; gap: 8px; }
   .rec b { font-size: 15px; }
   h3 { font-size: 16px; margin: 0 0 8px; }
   .center { text-align: center; padding: 30px 16px; font-size: 17px; }
-  .clist a { display: block; background: #1f4e79; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 17px; text-align: center; }
+  .tile { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #dde1e6; border-radius: 12px; padding: 16px; margin-bottom: 10px; color: #222; }
+  .tile b { font-size: 18px; color: #1f4e79; display: block; }
+  .tile span { font-size: 14px; color: #555; }
+  .tile.off b { color: #999; }
+  .clist button { margin-top: 8px; text-align: left; }
+  .unit { border: 1px solid #dde1e6; border-radius: 10px; padding: 12px; margin-top: 10px; display: flex; gap: 10px; align-items: flex-start; }
+  .unit .main { flex: 1; }
+  .unit .main b { font-size: 16px; }
+  .unit .main small { display: block; color: #666; margin-top: 2px; font-size: 13px; }
+  .unit input[type=checkbox] { width: 22px; height: 22px; margin-top: 2px; }
+  .seg { display: flex; border: 1px solid #1f4e79; border-radius: 10px; overflow: hidden; }
+  .seg button { border: none; border-radius: 0; padding: 10px; }
+  .seg button.on { background: #1f4e79; color: #fff; }
+  .opt { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid #dde1e6; border-radius: 10px; margin-top: 8px; font-size: 15px; }
+  .opt input { width: 20px; height: 20px; }
+  .netline { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
   .dlg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 999; }
   .dlg-box { background: #fff; border-radius: 12px; padding: 18px; width: 92%; max-width: 420px; line-height: 1.5; }
   #dlgMsg { white-space: pre-line; margin-bottom: 14px; }
@@ -51,16 +69,10 @@
 </style>
 </head>
 <body>
-<header><div class="t" id="cName">豐譽 盤點掃描</div><div class="s" id="cSub">載入中…</div></header>
+<header><div class="t" id="hTitle">豐譽 盤點領料</div><div class="s" id="hSub">載入中…</div></header>
 <div class="warn hidden" id="lineWarn">你正在 LINE 裡開啟，可能無法使用鏡頭。請按右上角選單 →「以預設瀏覽器開啟」，或複製連結到 Safari／Chrome。</div>
-<div class="who hidden" id="whoBar"><span id="whoTxt"></span><a href="#" id="switchWho">切換人員</a></div>
+<div class="who hidden" id="whoBar"><a href="#" id="goHome">‹ 首頁</a><span id="whoTxt"></span><a href="#" id="switchWho">切換人員</a></div>
 <div id="okMsg" class="ok hidden"></div>
-
-<!-- 選盤點單 -->
-<div class="box hidden" id="pPick">
-  <h3>請選擇盤點單</h3>
-  <div class="clist" id="clist"></div>
-</div>
 
 <!-- 身分登記 -->
 <div class="box hidden" id="pLogin">
@@ -72,13 +84,33 @@
   <p class="msg">這支手機會記住你的工號，下次不用再輸入。</p>
 </div>
 
-<!-- 主畫面 -->
-<div id="pMain" class="hidden">
+<!-- 首頁 -->
+<div id="pHome" class="hidden" style="margin:12px">
+  <div class="tile" id="tileCount"><b>盤點</b><span id="countHint">載入中…</span><div class="clist" id="clist"></div></div>
+  <button class="tile" id="tileRw"><b>維修／整新</b><span id="rwHint">載入中…</span></button>
+  <button class="tile off" disabled><b>臨時領料</b><span>開發中</span></button>
+</div>
+
+<!-- 維修清單 -->
+<div id="pRwList" class="hidden">
+  <div class="box"><h3>我的機台</h3><div id="rwMine" class="msg">載入中…</div></div>
+  <div class="box"><h3>待認領</h3><div id="rwFree" class="msg">載入中…</div>
+    <div style="height:12px"></div><button class="primary" id="btnClaim">認領勾選的機台</button></div>
+</div>
+
+<!-- 維修機台資訊 -->
+<div id="pRwHead" class="box hidden"></div>
+
+<!-- 掃描（盤點與維修共用） -->
+<div id="pWork" class="hidden">
   <div class="box">
+    <div id="typeBox" class="hidden" style="margin-bottom:12px">
+      <div class="seg"><button id="tIssue" class="on">領料</button><button id="tReturn">退料</button></div>
+    </div>
     <button class="primary" id="btnScan">開始掃描</button>
     <div id="scanArea" class="hidden">
       <div id="reader"></div>
-      <div class="scanhint" id="scanHint">把料卡 QR 對準框內，讀到會自動帶出料號</div>
+      <div class="scanhint">把料卡 QR 對準框內，讀到會自動帶出料號</div>
       <div style="height:8px"></div>
       <button class="small" id="btnStopScan">關閉鏡頭</button>
     </div>
@@ -92,14 +124,11 @@
     <div class="item" id="itemInfo"></div>
     <label id="qtyLabel">實際數量</label>
     <input id="qty" inputmode="decimal" type="number" min="0" step="any">
-    <label>位置／備註（建議填位置）</label>
+    <label id="noteLabel">位置／備註（建議填位置）</label>
     <input id="qtyNote" placeholder="例如：A架上層、二樓、外箱破損">
     <div id="qtyErr" class="err"></div>
     <div style="height:12px"></div>
-    <div class="row">
-      <button id="btnCancelQty">取消</button>
-      <button class="primary" id="btnSubmit">送出</button>
-    </div>
+    <div class="row"><button id="btnCancelQty">取消</button><button class="primary" id="btnSubmit">送出</button></div>
   </div>
 
   <div class="box">
@@ -111,22 +140,30 @@
         <div><label>數量 *</label><input id="uQty" type="number" inputmode="decimal" min="0" step="any"></div>
         <div><label>單位</label><input id="uUnit" placeholder="個、台、條…"></div>
       </div>
-      <label>照片（建議拍一張）</label>
-      <input type="file" accept="image/*" capture="environment" id="uPhoto" style="font-size:15px">
+      <div id="uPhotoRow"><label>照片（建議拍一張）</label>
+      <input type="file" accept="image/*" capture="environment" id="uPhoto" style="font-size:15px"></div>
       <label>備註</label>
       <input id="uNote">
       <div id="uErr" class="err"></div>
       <div style="height:12px"></div>
-      <div class="row">
-        <button id="btnCancelU">取消</button>
-        <button class="primary" id="btnSubmitU">送出</button>
-      </div>
+      <div class="row"><button id="btnCancelU">取消</button><button class="primary" id="btnSubmitU">送出</button></div>
     </div>
   </div>
 
-  <div class="box">
-    <h3>我登記的紀錄</h3>
-    <div id="myRecs" class="msg">載入中…</div>
+  <div class="box" id="pNet"><h3>這台目前用料（領料－退料）</h3><div id="netList" class="msg"></div></div>
+
+  <div class="box"><h3 id="recTitle">我登記的紀錄</h3><div id="myRecs" class="msg">載入中…</div></div>
+
+  <div class="box" id="pReport">
+    <h3>回報完工結果</h3>
+    <div id="resultOpts"></div>
+    <label>說明（做了什麼、缺什麼料）</label>
+    <textarea id="rNote" rows="3"></textarea>
+    <label>照片（選填）</label>
+    <input type="file" accept="image/*" capture="environment" id="rPhoto" style="font-size:15px">
+    <div id="rErr" class="err"></div>
+    <div style="height:12px"></div>
+    <button class="primary" id="btnReport">送出完工回報</button>
   </div>
 </div>
 
@@ -143,15 +180,15 @@
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var show = function (id, on) { $(id).classList.toggle('hidden', !on); };
   var Q = new URLSearchParams(location.search);
-  var COUNT_ID = Q.get('count') || '', START_ITEM = (Q.get('item') || '').toUpperCase();
+  var START_COUNT = Q.get('count') || '', START_ITEM = (Q.get('item') || '').toUpperCase(), START_RW = Q.get('rw') || '';
   var STORE_KEY = 'fy_inv_emp';
-  var COUNT = {}, items = [], byCode = {}, me = null, cur = null, scanner = null, scanning = false, paused = false, busy = false;
+  var MODE = '', COUNT_ID = '', COUNT = {}, RW = null, rwType = '領料';
+  var items = [], byCode = {}, me = null, cur = null, scanner = null, scanning = false, paused = false, busy = false;
 
   if (/\bLine\//i.test(navigator.userAgent)) show('lineWarn', true);
 
   function store(v) { try { if (v) localStorage.setItem(STORE_KEY, JSON.stringify(v)); else localStorage.removeItem(STORE_KEY); } catch (e) {} }
   function load() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; } }
-
   function call(action) {
     var args = Array.prototype.slice.call(arguments, 1);
     return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: action, args: args }) })
@@ -159,7 +196,6 @@
       .catch(function () { throw '連線失敗，請確認網路後再試一次'; })
       .then(function (j) { if (!j.ok) throw j.error; return j.data; });
   }
-
   var UI = (function () {
     function open(msg, cancel, yes, no) {
       return new Promise(function (res) {
@@ -171,9 +207,7 @@
     }
     return { alert: function (m) { return open(m, false); }, confirm: function (m, yes, no) { return open(m, true, yes, no); } };
   })();
-
   function flash(t) { $('okMsg').textContent = t; show('okMsg', true); clearTimeout(flash.t); flash.t = setTimeout(function () { show('okMsg', false); }, 3500); }
-
   var audio = null;
   function beep() {
     try {
@@ -184,54 +218,179 @@
     } catch (e) {}
     if (navigator.vibrate) navigator.vibrate(80);
   }
-
-  /* ---------- 啟動 ---------- */
-  if (!COUNT_ID) {
-    $('cSub').textContent = '請選擇要盤點的盤點單';
-    call('apiOpenCounts').then(function (list) {
-      if (!list.length) { $('pInfo').textContent = '目前沒有進行中的盤點單。'; show('pInfo', true); return; }
-      $('clist').innerHTML = list.map(function (c) {
-        return '<a href="?count=' + encodeURIComponent(c.id) + '">' + esc(c.name) + '<br><small>' + esc(c.id) + '</small></a>';
-      }).join('');
-      show('pPick', true);
-    }).catch(function (e) { $('pInfo').textContent = e; show('pInfo', true); });
-  } else {
-    call('countInit', COUNT_ID).then(function (d) {
-      $('cName').textContent = d.count.name;
-      $('cSub').textContent = '盤點單 ' + d.count.id + '｜' + d.count.status;
-      if (d.count.status !== '進行中') { $('pInfo').textContent = '這張盤點單已結束，無法再登記。如需補登請通知生管。'; show('pInfo', true); return; }
-      items = d.items; items.forEach(function (i) { byCode[i.code] = i; });
-      COUNT = d.count;
-      if (COUNT.assignName) $('cSub').textContent += '｜盤點人：' + COUNT.assignName;
-      me = load();
-      if (me) verify(me.no, true); else show('pLogin', true);
-    }).catch(function (e) { $('cName').textContent = '無法開啟盤點單'; $('cSub').textContent = e; });
-  }
+  function setItems(list) { items = list; byCode = {}; items.forEach(function (i) { byCode[i.code] = i; }); }
+  function views(on) { ['pLogin', 'pHome', 'pRwList', 'pRwHead', 'pWork', 'pInfo'].forEach(function (v) { show(v, on.indexOf(v) >= 0); }); }
 
   /* ---------- 身分 ---------- */
+  me = load();
+  if (me) verify(me.no, true); else { views(['pLogin']); $('hSub').textContent = '請先輸入工號'; }
   $('btnLogin').onclick = function () { verify($('empNo').value.trim(), false); };
   function verify(no, silent) {
     if (!no) { $('loginErr').textContent = '請輸入工號'; return; }
     $('btnLogin').disabled = true; $('loginErr').textContent = '';
-    call('verifyStaff', no).then(function (s) {
-      if (COUNT.assignNo && COUNT.assignNo !== s.no) {
-        throw '這張盤點單指定由 ' + COUNT.assignName + '（' + COUNT.assignNo + '）盤點。\n請開啟你自己的盤點連結，或切換人員。';
-      }
-      return (silent ? Promise.resolve(true) : UI.confirm(s.no + ' ' + s.name + '\n是你本人嗎？')).then(function (ok) {
+    call('homeInit', no).then(function (d) {
+      return (silent ? Promise.resolve(true) : UI.confirm(d.staff.no + ' ' + d.staff.name + '\n是你本人嗎？')).then(function (ok) {
         $('btnLogin').disabled = false;
         if (!ok) return;
-        me = s; store(s);
-        $('whoTxt').textContent = '盤點人：' + s.name + '（' + s.no + '）';
-        show('whoBar', true); show('pLogin', false); show('pMain', true);
-        loadMine();
-        if (START_ITEM) pick(START_ITEM);
+        me = d.staff; store(me);
+        $('whoTxt').textContent = me.name + '（' + me.no + '）';
+        show('whoBar', true);
+        if (START_COUNT) { var c = START_COUNT; START_COUNT = ''; openCount(c); }
+        else if (START_RW) { var r = START_RW; START_RW = ''; openUnit(r); }
+        else renderHome(d);
       });
     }).catch(function (e) {
-      store(null); me = null; show('pLogin', true); show('pMain', false); show('whoBar', false);
+      store(null); me = null; views(['pLogin']); show('whoBar', false);
       $('loginErr').textContent = e; $('btnLogin').disabled = false;
     });
   }
-  $('switchWho').onclick = function (e) { e.preventDefault(); store(null); me = null; stopScan(); show('pMain', false); show('whoBar', false); $('empNo').value = ''; show('pLogin', true); };
+  $('switchWho').onclick = function (e) { e.preventDefault(); stopScan(); store(null); me = null; show('whoBar', false); $('empNo').value = ''; $('hTitle').textContent = '豐譽 盤點領料'; $('hSub').textContent = '請先輸入工號'; views(['pLogin']); };
+  $('goHome').onclick = function (e) { e.preventDefault(); goHome(); };
+
+  /* ---------- 首頁 ---------- */
+  function goHome() {
+    stopScan(); MODE = ''; RW = null; COUNT_ID = '';
+    $('hTitle').textContent = '豐譽 盤點領料'; $('hSub').textContent = '載入中…'; views(['pHome']);
+    call('homeInit', me.no).then(renderHome).catch(function (e) { $('hSub').textContent = e; });
+  }
+  function renderHome(d) {
+    MODE = ''; $('hTitle').textContent = '豐譽 盤點領料'; $('hSub').textContent = '請選擇要做的事';
+    views(['pHome']);
+    $('countHint').textContent = d.counts.length ? '進行中的盤點單 ' + d.counts.length + ' 張' : '目前沒有你的盤點單';
+    $('clist').innerHTML = d.counts.map(function (c) { return '<button class="primary" data-c="' + esc(c.id) + '">' + esc(c.name) + '</button>'; }).join('');
+    Array.prototype.forEach.call($('clist').querySelectorAll('button[data-c]'), function (b) { b.onclick = function () { openCount(b.getAttribute('data-c')); }; });
+    $('rwHint').textContent = '我的機台 ' + d.rwMine + ' 台｜待認領 ' + d.rwClaimable + ' 台';
+  }
+
+  /* ---------- 盤點 ---------- */
+  function openCount(id) {
+    MODE = 'count'; COUNT_ID = id; $('hTitle').textContent = '載入中…'; $('hSub').textContent = '';
+    call('countInit', id).then(function (d) {
+      $('hTitle').textContent = d.count.name;
+      $('hSub').textContent = '盤點單 ' + d.count.id + '｜' + d.count.status + (d.count.assignName ? '｜盤點人：' + d.count.assignName : '');
+      if (d.count.status !== '進行中') { $('pInfo').textContent = '這張盤點單已結束，無法再登記。如需補登請通知生管。'; views(['pInfo']); return; }
+      if (d.count.assignNo && d.count.assignNo !== me.no) { $('pInfo').textContent = '這張盤點單指定由 ' + d.count.assignName + ' 盤點，請回首頁選你自己的盤點單。'; views(['pInfo']); return; }
+      COUNT = d.count; setItems(d.items);
+      setWorkUI(); views(['pWork']); loadRecords();
+      if (START_ITEM) { var it = START_ITEM; START_ITEM = ''; pick(it); }
+    }).catch(function (e) { $('hTitle').textContent = '無法開啟盤點單'; $('hSub').textContent = e; });
+  }
+
+  /* ---------- 維修／整新 ---------- */
+  $('tileRw').onclick = openRwList;
+  function unitCard(u, withBox) {
+    var st = { '處理中': 'blue', '待料': 'amber', '已完工': 'green', '待認領': '' }[u.status];
+    return '<div class="unit">' + (withBox ? '<input type="checkbox" class="claimChk" value="' + esc(u.uid) + '">' : '') +
+      '<div class="main" data-u="' + esc(u.uid) + '"><b>' + esc(u.name) + '</b><span class="tag ' + (st || '') + '">' + esc(u.status) + '</span>' +
+      '<small>' + esc(u.uid) + (u.sn ? '｜SN ' + esc(u.sn) : '') + '｜' + esc(u.kind) + '</small>' +
+      '<small>專案 ' + esc(u.project) + (u.desc ? '｜' + esc(u.desc) : '') + '</small></div></div>';
+  }
+  function openRwList() {
+    stopScan(); MODE = ''; $('hTitle').textContent = '維修／整新'; $('hSub').textContent = '點機台進入領料與回報'; views(['pRwList']);
+    $('rwMine').textContent = '載入中…'; $('rwFree').textContent = '載入中…';
+    call('rwMyUnits', me.no).then(function (d) {
+      $('rwMine').innerHTML = d.mine.length ? d.mine.map(function (u) { return unitCard(u, false); }).join('') : '目前沒有你負責的機台';
+      $('rwFree').innerHTML = d.claimable.length ? d.claimable.map(function (u) { return unitCard(u, true); }).join('') : '沒有待認領的機台';
+      show('btnClaim', d.claimable.length > 0);
+      Array.prototype.forEach.call(document.querySelectorAll('#rwMine .main[data-u]'), function (el) { el.onclick = function () { openUnit(el.getAttribute('data-u')); }; });
+      Array.prototype.forEach.call(document.querySelectorAll('#rwFree .main[data-u]'), function (el) {
+        el.onclick = function () { var cb = el.parentNode.querySelector('.claimChk'); cb.checked = !cb.checked; };
+      });
+    }).catch(function (e) { $('rwMine').textContent = e; });
+  }
+  $('btnClaim').onclick = function () {
+    var ids = Array.prototype.map.call(document.querySelectorAll('.claimChk:checked'), function (c) { return c.value; });
+    if (!ids.length) { UI.alert('請先勾選要認領的機台'); return; }
+    UI.confirm('確定認領 ' + ids.length + ' 台機台？認領後由你負責領料與回報。').then(function (ok) {
+      if (!ok) return;
+      call('rwClaim', me.no, ids).then(function () { flash('已認領 ' + ids.length + ' 台'); openRwList(); }).catch(function (e) { UI.alert(e); openRwList(); });
+    });
+  };
+
+  function openUnit(uid) {
+    MODE = 'rw'; $('hTitle').textContent = '載入中…'; $('hSub').textContent = '';
+    call('rwUnit', uid, me.no).then(function (d) {
+      RW = d; setItems(d.items);
+      var u = d.unit, h = d.head;
+      $('hTitle').textContent = u.name + (u.sn ? '　SN ' + u.sn : '');
+      $('hSub').textContent = u.uid + '｜' + h.kind + '｜專案 ' + h.project;
+      $('pRwHead').innerHTML = '<div><b>' + esc(u.code) + '</b> ' + esc(u.name) + '<span class="tag blue">' + esc(u.status) + '</span></div>' +
+        '<div class="msg">負責人：' + esc(u.ownerName || '尚未認領') + (h.desc ? '<br>內容：' + esc(h.desc) : '') +
+        (u.result ? '<br>上次回報：' + esc(u.result) + (u.note ? '（' + esc(u.note) + '）' : '') : '') + '</div>';
+      var mine = u.ownerNo === me.no, editable = mine && (u.status === '處理中' || u.status === '待料');
+      if (!mine) { $('pInfo').innerHTML = '這台機台由 ' + esc(u.ownerName || '還沒有人') + ' 負責。<br>請先回清單認領，或請生管改派。'; views(['pRwHead', 'pInfo']); return; }
+      if (!editable) { $('pInfo').textContent = '這台機台已回報完工（' + u.result + '），不能再領料。需要修改請通知生管。'; views(['pRwHead', 'pInfo']); return; }
+      setWorkUI(); views(['pRwHead', 'pWork']); renderRw();
+    }).catch(function (e) { $('hTitle').textContent = '無法開啟機台'; $('hSub').textContent = e; });
+  }
+  function reloadUnit() {
+    return call('rwUnit', RW.unit.uid, me.no).then(function (d) { RW = d; renderRw(); });
+  }
+  function renderRw() {
+    $('netList').innerHTML = RW.net.length ? RW.net.map(function (n) {
+      return '<div class="netline"><span>' + (n.free ? '（手填）' : esc(n.code) + ' ') + esc(n.name) + '</span><b>' + n.qty + ' ' + esc(n.unit) + '</b></div>';
+    }).join('') : '還沒有領料';
+    var list = RW.mats.filter(function (m) { return m.empNo === me.no; });
+    $('myRecs').innerHTML = list.length ? list.map(function (m) {
+      var t = m.code ? esc(m.code) + ' ' + esc(m.name) : '（手填）' + esc(m.freeName);
+      return '<div class="rec"><div><span class="tag ' + (m.type === '退料' ? 'amber' : 'blue') + '" style="margin-left:0">' + esc(m.type) + '</span> <b>' + t + '</b><br>' +
+        esc(m.qty) + ' ' + esc(m.unit) + '　' + esc(String(m.time).slice(5, 16)) + (m.note ? '　' + esc(m.note) : '') + '</div>' +
+        '<button class="small" data-r="' + esc(m.rid) + '">刪除</button></div>';
+    }).join('') : '還沒有紀錄';
+    Array.prototype.forEach.call($('myRecs').querySelectorAll('button[data-r]'), function (b) {
+      b.onclick = function () {
+        UI.confirm('確定刪除這筆紀錄？').then(function (ok) {
+          if (!ok) return;
+          b.disabled = true;
+          call('rwDeleteMat', b.getAttribute('data-r'), me.no).then(reloadUnit).catch(function (e) { UI.alert(e); b.disabled = false; });
+        });
+      };
+    });
+    var r = RW.results;
+    $('resultOpts').innerHTML = Object.keys(r).map(function (k) {
+      return '<label class="opt"><input type="radio" name="res" value="' + k + '">' + esc(r[k]) + '</label>';
+    }).join('');
+  }
+  $('tIssue').onclick = function () { setType('領料'); };
+  $('tReturn').onclick = function () { setType('退料'); };
+  function setType(t) {
+    rwType = t; $('tIssue').classList.toggle('on', t === '領料'); $('tReturn').classList.toggle('on', t === '退料');
+    $('btnSubmit').textContent = '送出' + t; $('btnSubmitU').textContent = '送出' + t;
+  }
+  $('btnReport').onclick = function () {
+    if (busy) return;
+    var sel = document.querySelector('input[name=res]:checked');
+    if (!sel) { $('rErr').textContent = '請選擇完工結果'; return; }
+    var f = $('rPhoto').files[0], k = sel.value;
+    var pre = (k === 'X01' && !f) ? UI.confirm('報廢建議拍一張照片，方便確認原因。\n不拍也可以送出，確定送出嗎？', '直接送出', '回去拍照') : Promise.resolve(true);
+    pre.then(function (ok) {
+      if (!ok) return;
+      return UI.confirm('回報「' + RW.results[k] + '」？' + (k === 'WAIT' ? '\n待料的機台之後還可以繼續領料。' : '\n回報後就不能再領料。')).then(function (ok2) {
+        if (!ok2) return;
+        busy = true; $('btnReport').disabled = true; $('rErr').textContent = '';
+        return shrink(f).then(function (photo) {
+          return call('rwReport', { uid: RW.unit.uid, empNo: me.no, result: k, note: $('rNote').value, photo: photo });
+        }).then(function (r) {
+          flash('已回報：' + RW.results[k]); $('rNote').value = ''; $('rPhoto').value = '';
+          if (r.status === '待料') return reloadUnit().then(function () { openUnit(RW.unit.uid); });
+          openRwList();
+        });
+      });
+    }).catch(function (e) { $('rErr').textContent = e; })
+      .then(function () { busy = false; $('btnReport').disabled = false; });
+  };
+
+  /* ---------- 共用：畫面切換 ---------- */
+  function setWorkUI() {
+    var rw = MODE === 'rw';
+    show('typeBox', rw); show('pNet', rw); show('pReport', rw); show('uPhotoRow', !rw);
+    $('recTitle').textContent = rw ? '我在這台登記的紀錄' : '我登記的紀錄';
+    $('noteLabel').textContent = rw ? '備註（選填）' : '位置／備註（建議填位置）';
+    $('qtyNote').placeholder = rw ? '例如：換下的舊品已放不良品區' : '例如：A架上層、二樓、外箱破損';
+    $('btnUnlisted').textContent = rw ? '主檔查無，手動填寫' : '登記沒有料卡／查不到料號的物品';
+    setType('領料'); if (!rw) { $('btnSubmit').textContent = '送出'; $('btnSubmitU').textContent = '送出'; }
+    show('pQty', false); resetU(); $('search').value = ''; show('sug', false);
+  }
 
   /* ---------- 連續掃描 ---------- */
   function codeFromText(t) {
@@ -243,7 +402,7 @@
   function startScan() {
     if (typeof Html5Qrcode === 'undefined') { $('camErr').textContent = '掃描元件載入失敗，請重新整理頁面'; show('camErr', true); return; }
     show('camErr', false); show('scanArea', true); show('btnScan', false);
-    beep.unlock = beep.unlock || (function () { try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {} return 1; })();
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
     scanner = scanner || new Html5Qrcode('reader');
     scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 }, onDecode, function () {})
       .then(function () { scanning = true; paused = false; })
@@ -257,13 +416,10 @@
   function onDecode(text) {
     if (paused) return;
     var code = codeFromText(text);
-    // 剛送出後 3 秒內，鏡頭還對著同一張料卡時不重複帶入
     if (code === lastCode && Date.now() - resumeAt < 3000) return;
-    lastCode = code;
-    paused = true;
+    lastCode = code; paused = true;
     try { scanner.pause(true); } catch (e) {}
-    beep();
-    pick(code);
+    beep(); pick(code);
   }
   function resumeScan() {
     if (scanning && paused) {
@@ -285,25 +441,19 @@
     var hit = items.filter(function (i) { return (i.code + ' ' + i.name + ' ' + i.spec).toUpperCase().indexOf(k) >= 0; }).slice(0, 15);
     $('sug').innerHTML = hit.length ? hit.map(function (i) {
       return '<div data-c="' + esc(i.code) + '"><b>' + esc(i.code) + '</b> ' + esc(i.name) + '<small>' + esc(i.spec) + '</small></div>';
-    }).join('') : '<div>查無符合的料號，可改用下方「登記沒有料卡的物品」</div>';
+    }).join('') : '<div>查無符合的料號，可改用下方「' + esc($('btnUnlisted').textContent) + '」</div>';
     show('sug', true);
     Array.prototype.forEach.call($('sug').querySelectorAll('div[data-c]'), function (d) {
       d.onclick = function () { if (scanning && !paused) { paused = true; try { scanner.pause(true); } catch (e) {} } pick(d.getAttribute('data-c')); };
     });
   };
 
-  /* ---------- 輸入數量 ---------- */
+  /* ---------- 選到料號 ---------- */
   function pick(code) {
     var it = byCode[code];
     $('search').value = ''; show('sug', false);
-    if (!it) {
-      UI.alert('查無料號：' + code + '\n可能是舊料卡或非盤點料號，請改用「登記沒有料卡的物品」。').then(resumeScan);
-      return;
-    }
-    checkDup(it).then(function (go) {
-      if (!go) { resumeScan(); return; }
-      showQty(it);
-    });
+    if (!it) { UI.alert('查無料號：' + code + '\n可能是舊料卡或主檔沒有這個料號，請改用「' + $('btnUnlisted').textContent + '」。').then(resumeScan); return; }
+    (MODE === 'count' ? checkDup(it) : Promise.resolve(true)).then(function (go) { if (!go) { resumeScan(); return; } showQty(it); });
   }
   function checkDup(it) {
     return call('codeRecords', COUNT_ID, it.code).then(function (list) {
@@ -317,14 +467,14 @@
   function showQty(it) {
     cur = it;
     $('itemInfo').innerHTML = '<span class="line">' + esc(it.line) + '</span>' + (it.disabled ? '<span class="tag">已停用</span>' : '') +
-      '<div class="code">' + esc(it.code) + '</div><div class="name">' + esc(it.name) + '</div>' +
-      (it.spec ? '<div class="spec">' + esc(it.spec) + '</div>' : '');
-    $('qtyLabel').textContent = '實際數量（' + it.unit + (it.decimal ? '，可填小數' : '，請填整數') + '）';
-    $('qty').value = ''; $('qtyNote').value = ''; $('qtyErr').textContent = '';
+      '<div class="code">' + esc(it.code) + '</div><div class="name">' + esc(it.name) + '</div>' + (it.spec ? '<div class="spec">' + esc(it.spec) + '</div>' : '');
+    var what = MODE === 'rw' ? rwType + '數量' : '實際數量';
+    $('qtyLabel').textContent = what + '（' + it.unit + (it.decimal ? '，可填小數' : '，請填整數') + '）';
+    $('qty').value = MODE === 'rw' ? '1' : ''; $('qtyNote').value = ''; $('qtyErr').textContent = '';
     $('qty').step = it.decimal ? 'any' : '1';
     show('pQty', true);
     $('pQty').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(function () { $('qty').focus(); }, 250);
+    setTimeout(function () { $('qty').focus(); $('qty').select(); }, 250);
   }
   $('btnCancelQty').onclick = function () { cur = null; show('pQty', false); resumeScan(); };
   $('btnSubmit').onclick = function () {
@@ -332,18 +482,20 @@
     var v = $('qty').value.trim();
     if (v === '') { $('qtyErr').textContent = '請輸入數量'; return; }
     if (!cur.decimal && Math.floor(Number(v)) !== Number(v)) { $('qtyErr').textContent = '這個單位只能填整數'; return; }
-    busy = true; $('btnSubmit').disabled = true; $('btnSubmit').textContent = '送出中…';
-    call('submitCount', { countId: COUNT_ID, empNo: me.no, code: cur.code, qty: v, note: $('qtyNote').value })
-      .then(function (r) {
-        flash('已記錄 ' + r.code + ' ' + r.name + '：' + r.qty + ' ' + r.unit);
-        cur = null; show('pQty', false); loadMine();
-        if (scanning) resumeScan(); else window.scrollTo(0, 0);
-      })
-      .catch(function (e) { $('qtyErr').textContent = e; })
-      .then(function () { busy = false; $('btnSubmit').disabled = false; $('btnSubmit').textContent = '送出'; });
+    busy = true; var label = $('btnSubmit').textContent; $('btnSubmit').disabled = true; $('btnSubmit').textContent = '送出中…';
+    var p = MODE === 'rw'
+      ? call('rwIssue', { uid: RW.unit.uid, empNo: me.no, code: cur.code, qty: v, type: rwType, note: $('qtyNote').value })
+      : call('submitCount', { countId: COUNT_ID, empNo: me.no, code: cur.code, qty: v, note: $('qtyNote').value });
+    p.then(function (r) {
+      flash((MODE === 'rw' ? '已' + r.type + ' ' : '已記錄 ') + r.code + ' ' + r.name + '：' + r.qty + ' ' + r.unit);
+      cur = null; show('pQty', false); loadRecords();
+      if (scanning) resumeScan(); else window.scrollTo(0, 0);
+    }).catch(function (e) { $('qtyErr').textContent = e; })
+      .then(function () { busy = false; $('btnSubmit').disabled = false; $('btnSubmit').textContent = label; });
   };
+  function loadRecords() { if (MODE === 'rw') reloadUnit(); else loadMine(); }
 
-  /* ---------- 無料號物品 ---------- */
+  /* ---------- 無料號／手動填寫 ---------- */
   $('btnUnlisted').onclick = function () { show('pUnlisted', true); show('btnUnlisted', false); };
   $('btnCancelU').onclick = resetU;
   function resetU() { ['uName', 'uQty', 'uUnit', 'uNote'].forEach(function (id) { $(id).value = ''; }); $('uPhoto').value = ''; $('uErr').textContent = ''; show('pUnlisted', false); show('btnUnlisted', true); }
@@ -366,6 +518,14 @@
     var name = $('uName').value.trim(), q = $('uQty').value.trim();
     if (!name) { $('uErr').textContent = '請填寫物品名稱'; return; }
     if (q === '') { $('uErr').textContent = '請輸入數量'; return; }
+    if (MODE === 'rw') {
+      busy = true; $('btnSubmitU').disabled = true;
+      call('rwIssue', { uid: RW.unit.uid, empNo: me.no, freeName: name, qty: q, unit: $('uUnit').value, type: rwType, note: $('uNote').value })
+        .then(function (r) { flash('已' + r.type + '（手填）' + r.name + '：' + r.qty + ' ' + r.unit); resetU(); reloadUnit(); window.scrollTo(0, 0); })
+        .catch(function (e) { $('uErr').textContent = e; })
+        .then(function () { busy = false; $('btnSubmitU').disabled = false; });
+      return;
+    }
     var f = $('uPhoto').files[0];
     (f ? Promise.resolve(true) : UI.confirm('沒有拍照，確定要送出嗎？')).then(function (ok) { if (ok) sendU(name, q, f); });
   };
@@ -379,7 +539,7 @@
       .then(function () { busy = false; $('btnSubmitU').disabled = false; $('btnSubmitU').textContent = '送出'; });
   }
 
-  /* ---------- 我的紀錄 ---------- */
+  /* ---------- 盤點：我的紀錄 ---------- */
   function loadMine() {
     call('myRecords', COUNT_ID, me.no).then(function (list) {
       if (!list.length) { $('myRecs').textContent = '還沒有紀錄'; return; }
